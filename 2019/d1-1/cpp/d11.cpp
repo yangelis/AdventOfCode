@@ -12,7 +12,7 @@ size_t fuel_calc(const size_t mass)
 
 int main()
 {
-    std::ifstream inputf("input.txt");
+    std::ifstream inputf("../input.txt");
     size_t total_fuel = 0;
     if (inputf.is_open())
     {
