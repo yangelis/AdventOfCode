@@ -6,7 +6,7 @@ def totalFuel(mass):
     return np.floor(mass / 3) - 2
 
 
-masses = np.genfromtxt("input.txt", dtype=int)
+masses = np.genfromtxt("../input.txt", dtype=int)
 #masses = np.array([1969])
 total_fuel = 0
 #print(masses)
