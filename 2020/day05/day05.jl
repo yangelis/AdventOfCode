@@ -58,6 +58,14 @@ function get_row_col(encoding::String, debug::Bool = false)
     return (r, c)
 end
 
+function my_seat(avail_id_range, ids)
+    for id in avail_id_range
+        if !(id in ids)
+            return id
+        end
+    end
+end
+
 function main(filename::String)
     lines = readlines(filename)
     n_lines = length(lines)
@@ -72,9 +80,12 @@ function main(filename::String)
         seats.id[i] = get_id(r,c)
         # println(seats[i])
     end
-    println(length(seats.id))
-    println(length(unique(seats.id)))
+    # println(length(seats.id))
+    # println(length(unique(seats.id)))
     println("Part1: ", maximum(seats.id))
+
+    rn = minimum(seats.id):maximum(seats.id)
+    println("Part2: ", my_seat(rn, seats.id))
 
 
 
