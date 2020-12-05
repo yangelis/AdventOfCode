@@ -1,5 +1,5 @@
-const ROWS = 128
-const COLS = 8
+const ROWS = 127
+const COLS = 7
 
 struct Plane
     row::Vector{Int64}
@@ -10,6 +10,8 @@ struct Plane
                                    Vector{Int64}(undef, passengers))
 end
 
+Base.getindex(plane::Plane, n) = ( plane.row[n], plane.col[n], plane.id[n] )
+
 function print_seat(r,c,id)
     println("Row: $r, col: $c, id: $id")
 end
@@ -18,27 +20,42 @@ function get_id(r::Int64, c::Int64)
     return r * 8 + c
 end
 
-function get_row_col(encoding::String)
-    row_range = (1, ROWS)
-    col_range = (1, COLS)
+function get_row_col(encoding::String, debug::Bool = false)
+    row_range = (0, ROWS)
+    col_range = (0, COLS)
+    r, c = 0, 0
 
+    debug ? println("[DBG]: ", encoding) : nothing
+    debug ? println("[DBG]: ", row_range) : nothing
     for char in encoding[1:7]
         if char == 'F'
-            row_range = ( row_range[1], (row_range[1] + row_range[2]) ÷ 2 )
+            row_range = ( row_range[1], Int64(floor((row_range[1] +
+                                                     row_range[2]) ÷ 2 )))
+            r = minimum(row_range)
         elseif char == 'B'
-            row_range = ( (row_range[1] + row_range[2]) ÷ 2, row_range[2] )
+            row_range = ( Int64(floor((row_range[1] + row_range[2]) / 2)) + 1,
+                          row_range[2] )
+            r = maximum(row_range)
         end
+        debug ? println("[DBG]: ", row_range) : nothing
     end
 
+    debug ? println("[DBG]: ", col_range) : nothing
     for char in encoding[8:end]
         if char == 'L'
-            col_range = ( col_range[1], (col_range[1] + col_range[2]) ÷ 2 )
+            col_range = ( col_range[1], Int64(floor((col_range[1] +
+                                                     col_range[2]) ÷ 2 )))
+            c = minimum(col_range)
         elseif char == 'R'
-            col_range = ( (col_range[1] + col_range[2]) ÷ 2, col_range[2] )
+            col_range = ( Int64(floor((col_range[1] + col_range[2]) / 2)) + 1,
+                          col_range[2] )
+            c = maximum(col_range)
         end
+        debug ? println("[DBG]: ", col_range) : nothing
     end
 
-    return (row_range[1],col_range[1])
+    debug ? println("[DBG]: ", "range :", (r, c)) : nothing
+    return (r, c)
 end
 
 function main(filename::String)
@@ -49,11 +66,16 @@ function main(filename::String)
     seats = Plane(n_lines)
 
     for i in 1:n_lines
-        r, c = get_row_col(lines[i])
+        r, c = get_row_col(lines[i], false)
         seats.row[i] = r
         seats.col[i] = c
         seats.id[i] = get_id(r,c)
-        # print_seat(seats.row[i], seats.col[i], seats.id[i])
+        # println(seats[i])
     end
+    println(length(seats.id))
+    println(length(unique(seats.id)))
     println("Part1: ", maximum(seats.id))
+
+
+
 end
