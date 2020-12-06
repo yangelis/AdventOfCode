@@ -1,15 +1,31 @@
-function part1(lines::String)
-    answers =  sum([length(unique(l)) for l in split(lines)])
-    answers
+function part1(lines)
+    sum([length(unique(filter(x -> x!='\n' , l))) for l in lines])
 end
+
+function part2(lines)
+    result = 0
+    for line in lines
+        g1 = split(line, '\n')
+        chars = Set(g1[1])
+        for i in 1:length(g1)
+            temp = Set(g1[i])
+            intersect!(chars,temp)
+        end
+        result += length(chars)
+    end
+    return result
+end
+
 
 function main(filename::String)
     lines = ""
-    for l in eachline(filename, keep=true)
+    file = readlines(filename, keep=true)
+    for l in file
         lines *= l
     end
-
-    lines = replace(replace(replace(lines,"\n\n"=>"+"), "\n"=>""), "+"=>'\n')
+    lines = split(lines, "\n\n")
+    lines[end] = chomp(lines[end])
 
     println("Part1: ", part1(lines))
+    println("Part2: ", part2(lines))
 end
