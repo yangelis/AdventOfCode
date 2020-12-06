@@ -18,16 +18,14 @@ end
 
 function pipePart1(filename)
     readlines(filename, keep=true) |> join |> x->split(x, "\n\n") |>
-        f->map(x->filter(y->y!='\n', x), f) |>
+        f->map(x->filter(y->isletter(y), x), f) |>
         f->map(x->unique(x), f) |>
         f->map(x->length(x), f) |>
         sum |> f->println("Part1: ",f)
 end
 
 function main(filename::String)
-    lines = ""
-    file = readlines(filename, keep=true) |> join
-    lines = split(file, "\n\n")
+    lines = readlines(filename, keep=true) |> join |> x->split(x, "\n\n")
     lines[end] = chomp(lines[end])
 
     pipePart1(filename)
