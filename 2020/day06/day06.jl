@@ -16,16 +16,22 @@ function part2(lines)
     return result
 end
 
+function pipePart1(filename)
+    readlines(filename, keep=true) |> join |> x->split(x, "\n\n") |>
+        f->map(x->filter(y->y!='\n', x), f) |>
+        f->map(x->unique(x), f) |>
+        f->map(x->length(x), f) |>
+        sum |> f->println("Part1: ",f)
+end
 
 function main(filename::String)
     lines = ""
-    file = readlines(filename, keep=true)
-    for l in file
-        lines *= l
-    end
-    lines = split(lines, "\n\n")
+    file = readlines(filename, keep=true) |> join
+    lines = split(file, "\n\n")
     lines[end] = chomp(lines[end])
 
+    pipePart1(filename)
     println("Part1: ", part1(lines))
+
     println("Part2: ", part2(lines))
 end
