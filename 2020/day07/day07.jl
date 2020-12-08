@@ -90,10 +90,25 @@ function part2(bags, bag)
     return counter
 end
 
+# dot graph.dot -Tpng -o graph.png
+function graph_printer(bags)
+    open("graph.dot", "w") do file
+        print(file, "digraph{\n")
+        for (key, val) in bags
+            for (b, _) in get_Bag!(key, bags).contains
+                n2 = b.name
+                print(file, "\"$key\" -> \"$n2\";\n")
+            end
+        end
+        print(file, "}\n")
+    end
+end
+
 function main(filename::String)
     file = readlines(filename)
     bags = parse_rules(file)
 
+    graph_printer(bags)
     println("Part1: ", part1(bags, get_Bag!("shiny gold",bags)))
     println("Part2: ", part2(bags, get_Bag!("shiny gold",bags)))
 end
