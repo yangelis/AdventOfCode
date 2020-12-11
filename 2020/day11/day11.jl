@@ -1,6 +1,6 @@
 const FLOOR = '.'
-const EMPTY = 'L'
-const SEAT  = '#'
+const SEAT = 'L'
+const OCCUPIED  = '#'
 const PAD  = '0'
 
 function print_layout(m)
@@ -33,49 +33,81 @@ adjacent_indices = [(-1, -1), (1, 1),
                     (-1, 0), (1, 0),
                     (-1, 1), (1, -1)]
 
-@inline function model!(new_layout::Matrix{Char}, old_layout::Matrix{Char})
+function neighboors_part1(layout::Matrix{Char},i,j)
+    count(x-> x==OCCUPIED, [layout[i + index[1], j + index[2]] for index in adjacent_indices])
+end
+
+function model1!(new_layout::Matrix{Char}, old_layout::Matrix{Char})
     h, w = size(old_layout)
-    for i in 2:h - 1
-        for j in 2:w - 1
-            if old_layout[i,j] == EMPTY
-                counter = 0
-                for index in adjacent_indices
-                    if old_layout[i + index[1], j + index[2]] != SEAT
-                        counter += 1
-                    end
-                end
-
-                if counter == 8
-                    new_layout[i,j] = SEAT
-                end
-            elseif old_layout[i,j] == SEAT
-                counter = 0
-                for index in adjacent_indices
-                    if old_layout[i + index[1], j + index[2]] == SEAT
-                        counter += 1
-                    end
-                end
-
-                if counter >= 4
-                    new_layout[i,j] = EMPTY
-                end
-            elseif old_layout[i,j] == FLOOR
-                continue
+    @inbounds for i in 2:h - 1
+        @inbounds for j in 2:w - 1
+            count_line = neighboors_part1(old_layout, i, j)
+            if old_layout[i,j] == SEAT && count_line == 0
+                new_layout[i,j] = OCCUPIED
+            elseif old_layout[i,j] == OCCUPIED && count_line >= 4
+                new_layout[i,j] = SEAT
             end
         end
     end
+    return new_layout
 end
 
-function part1(old_layout::Matrix{Char})
-    new_layout = copy(old_layout)
-    model!(new_layout, old_layout)
-    while new_layout != old_layout
+
+function part1(new_layout::Matrix{Char}, old_layout::Matrix{Char})
+    while true
+        model1!(new_layout, old_layout)
+        if new_layout == old_layout
+            break
+        end
         old_layout = copy(new_layout)
-        model!(new_layout, old_layout)
     end
-    return filter(x -> x == '#', new_layout) |> length
+    return count(x -> x == '#', new_layout)
 end
 
+function neighboors_part2(layout::Matrix{Char},i,j)
+    counter = 0
+    for index in adjacent_indices
+        ii = i + index[1]
+        jj = j + index[2]
+        while layout[ii, jj] == FLOOR
+            ii += index[1]
+            jj += index[2]
+        end
+
+        if layout[ii, jj] == OCCUPIED
+            counter += 1
+        end
+
+    end
+    return counter
+end
+
+@inline function model2!(new_layout::Matrix{Char}, old_layout::Matrix{Char})
+    h, w = size(old_layout)
+    @inbounds for i in 2:h - 1
+        @inbounds for j in 2:w - 1
+            count_line = neighboors_part2(old_layout, i, j)
+            if old_layout[i,j] == SEAT && count_line == 0
+                new_layout[i,j] = OCCUPIED
+            elseif old_layout[i,j] == OCCUPIED && count_line >= 5
+                new_layout[i,j] = SEAT
+            end
+        end
+    end
+    return new_layout
+end
+
+function part2(new_layout::Matrix{Char},old_layout::Matrix{Char})
+    while true
+        model2!(new_layout, old_layout)
+        if new_layout == old_layout
+            break
+        end
+
+        old_layout = copy(new_layout)
+    end
+    return count(x -> x == '#', new_layout)
+end
 
 function main(filename::String)
     lines = readlines(filename)
@@ -91,6 +123,8 @@ function main(filename::String)
     layout[end,:] .= PAD
     layout[:,end] .= PAD
 
-    println("Part1: ", part1(layout))
 
+    new_layout = copy(layout)
+    println("Part1: ", part1(new_layout, layout))
+    println("Part2: ", part2(new_layout, layout))
 end
