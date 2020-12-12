@@ -1,8 +1,5 @@
 @inline function turns(unit::Int64)
-
     return Int64(unit / 90)
-
-
 end
 
 
@@ -40,12 +37,42 @@ function part1(instructions)
         elseif dir == 'S'
             pos.y -= unit
         end
-        println((pos, current_direction))
     end
 
     manhattan_dist(pos)
 end
 
+
+function part2(instructions)
+    ship = Pos(0,0)
+    waypoint = Pos(10, 1)
+    for (dir, unit) in instructions
+        if dir == 'L'
+            # TODO: fix me
+            for i in 1:(unit ÷ 90)
+                waypoint = Pos(-waypoint.y, waypoint.x )
+            end
+        elseif dir == 'R'
+            for i in 1:(unit ÷ 90)
+                waypoint = Pos(waypoint.y, -waypoint.x )
+            end
+        elseif dir == 'F'
+            ship.x += waypoint.x * unit
+            ship.y += waypoint.y * unit
+        elseif dir == 'E'
+            waypoint.x += unit
+        elseif dir == 'W'
+            waypoint.x -= unit
+        elseif dir == 'N'
+            waypoint.y += unit
+        elseif dir == 'S'
+            waypoint.y -= unit
+        end
+
+        println(ship, ",", waypoint)
+    end
+    manhattan_dist(ship)
+end
 
 function main(filename::String)
     lines = readlines(filename)
@@ -55,5 +82,6 @@ function main(filename::String)
     for (i, line) in enumerate(lines)
         instructions[i] = (dir = line[1], unit = parse(Int64, line[2:end]))
     end
-    part1(instructions)
+    println("Part1: ", part1(instructions))
+    println("Part2: ", part2(instructions))
 end
