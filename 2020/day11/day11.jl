@@ -52,23 +52,12 @@ function model1!(new_layout::Matrix{Char}, old_layout::Matrix{Char})
     return new_layout
 end
 
-
-function part1(new_layout::Matrix{Char}, old_layout::Matrix{Char})
-    while true
-        model1!(new_layout, old_layout)
-        if new_layout == old_layout
-            break
-        end
-        old_layout = copy(new_layout)
-    end
-    return count(x -> x == '#', new_layout)
-end
-
 function neighboors_part2(layout::Matrix{Char},i,j)
     counter = 0
     for index in adjacent_indices
         ii = i + index[1]
         jj = j + index[2]
+
         while layout[ii, jj] == FLOOR
             ii += index[1]
             jj += index[2]
@@ -97,9 +86,9 @@ end
     return new_layout
 end
 
-function part2(new_layout::Matrix{Char},old_layout::Matrix{Char})
+function run(new_layout::Matrix{Char},old_layout::Matrix{Char}, model!)
     while true
-        model2!(new_layout, old_layout)
+        model!(new_layout, old_layout)
         if new_layout == old_layout
             break
         end
@@ -125,6 +114,6 @@ function main(filename::String)
 
 
     new_layout = copy(layout)
-    println("Part1: ", part1(new_layout, layout))
-    println("Part2: ", part2(new_layout, layout))
+    println("Part1: ", run(new_layout, layout, model1!))
+    println("Part2: ", run(new_layout, layout, model2!))
 end
