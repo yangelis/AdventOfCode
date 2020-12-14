@@ -66,14 +66,10 @@ function part2(lines)
             # for i in combinations(float_add)
             #     mem[index + sum(1 << (k - 1) for k in i)] = num
             # end
-            for i in collect(Iterators.product(Iterators.repeated([0,1], length(float_add))...))
-                c = 0
-                for (ii,j) in enumerate(i)
-                    if j == 1
-                        c += 1 << (float_add[ii] - 1)
-                    end
+            for comb in collect(Iterators.product(Iterators.repeated([0,1], length(float_add))...))
+                if (i = [float_add[ii] for (ii, j) in enumerate(comb) if j == 1]; !isempty(i))
+                    mem[index + sum(1 << (k - 1) for k in i)] = num
                 end
-                mem[index + c]= num
             end
         end
     end
