@@ -1,9 +1,9 @@
-# almost crt
 function chineseremainder(ni::Array, ci::Array)
     N = BigInt(prod(ni))
     Ni = map(x->N÷x, ni)
     di = map(x->invmod(x[1], x[2]), zip(Ni, ni))
     mod(sum(ci[i] * di[i] * Ni[i] for i in 1:length(ni)), N)
+    # (x+ci) % ni = 0
     mod(reduce(-, ci[i] * di[i] * Ni[i] for i in 1:length(ni)), N)
 end
 
