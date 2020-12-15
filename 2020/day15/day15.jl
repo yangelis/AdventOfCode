@@ -1,11 +1,11 @@
-function part1(line::Vector{Int})
+function solve(line::Vector{Int}, iterations::Int)
     # println(line)
     N = length(line)
     spoken_time = Dict(line[i] => i for i in 1:N )
     counters = Dict(i => 1 for i in line)
 
     last_number = line[end]
-    for i in (N+1):2020
+    for i in (N+1):iterations
         temp_num = if counters[last_number] == 1
             0
         else
@@ -21,15 +21,13 @@ function part1(line::Vector{Int})
     return last_number
 end
 
-
-
-
 function main(filename::String)
     lines = readlines(filename) |>
         x->split.(x, ',') |> x->map.(f->parse(Int64,f), x)
 
     for line in lines
-        println("Part1: ", part1(line))
+        println("Part1: ", solve(line, 2020))
+        println("Part2: ", solve(line, 30000000))
     end
 
 
