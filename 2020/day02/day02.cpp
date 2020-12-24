@@ -5,8 +5,8 @@
 using namespace std;
 
 struct Data {
-  int low, high;
   char c;
+  int low, high;
   string_view pass;
 };
 
@@ -51,7 +51,7 @@ Data process_line(string_view line) {
   pos = line.find(':');
   line.remove_prefix(pos);
 
-  return {low, high, c, line};
+  return {c, low, high, line};
 }
 
 int main(int argc, char *argv[]) {
