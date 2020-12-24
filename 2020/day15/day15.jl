@@ -1,20 +1,15 @@
 function solve(line::Vector{Int}, iterations::Int)
-    # println(line)
     N = length(line)
-    spoken_time = Dict(line[i] => i for i in 1:N )
-    counters = Dict(i => 1 for i in line)
-
+    spoken_time = Dict(line[i] => i for i in 1:N-1 )
     last_number = line[end]
-    for i in (N+1):iterations
-        temp_num = if counters[last_number] == 1
-            0
+
+    for i in N:iterations-1
+        temp_num = if last_number in keys(spoken_time)
+            i - spoken_time[last_number]
         else
-            (i - 1) - spoken_time[last_number]
+            0
         end
-
-        spoken_time[last_number] = i - 1
-        counters[temp_num] = get(counters, temp_num, 0) + 1
-
+        spoken_time[last_number] = i
         last_number = temp_num
     end
 
