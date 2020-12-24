@@ -1,4 +1,4 @@
-#include "../helpers.hpp"
+#include "../utils.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     cerr << "No input file given\n";
     exit(1);
   }
-  auto lines = helpers::read_lines_as_string_view(argv[1]);
+  auto lines = utils::read_lines_as_string_view(argv[1]);
 
   vector<Data> db;
   db.reserve(lines.size());

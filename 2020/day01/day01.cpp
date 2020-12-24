@@ -1,4 +1,4 @@
-#include "../helpers.hpp"
+#include "../utils.hpp"
 #include <algorithm>
 
 using namespace std;
@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  auto lines = helpers::map(helpers::read_lines_as_string_view(argv[1]),
-                            helpers::to_int);
+  auto lines = utils::map(utils::read_lines_as_string_view(argv[1]),
+                            utils::to_int);
 
   cout << part1(lines) << '\n';
   cout << part2(lines) << '\n';
