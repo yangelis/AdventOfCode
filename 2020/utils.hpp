@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP__
 #define UTILS_HPP__
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -25,6 +26,15 @@ using f64 = double;
 
 namespace utils {
 
+template <typename T> T mod(T a, T b) { return (a % b + b) % b; }
+//////////////////////////////////////////////////
+// Maybe
+//////////////////////////////////////////////////
+template <typename T> struct Maybe {
+  bool has_value{};
+  T unwrap{};
+};
+
 //////////////////////////////////////////////////
 // Matrix
 //////////////////////////////////////////////////
@@ -40,14 +50,16 @@ template <typename T> struct Matrix {
 
   const T &operator()(size_t i, size_t j) const { return data[j + i * cols]; }
 
-  void diagonal(T d = (T)1.0) {
+  static inline Matrix<T> diagonal(size_t rows, size_t cols, T d = (T)1.0) {
+    Matrix<T> ret(rows, cols);
     for (size_t i = 0; i < rows; ++i) {
       for (size_t j = 0; j < cols; ++j) {
         if (i == j) {
-          (*this)(i, j) = d;
+          ret(i, j) = d;
         }
       }
     }
+    return ret;
   }
 
   T trace() {
@@ -96,29 +108,69 @@ template <typename T> struct Matrix {
   }
 };
 
+// "stolen" from zhiayang
+// https://github.com/zhiayang/adventofcode/blob/master/libs/aoc2.h
 static inline std::string_view readFileRaw(const std::string &path) {
   FILE *f = fopen(path.c_str(), "r");
   if (!f)
     fprintf(stderr, "failed to open file '%s'\n", path.c_str()), abort();
 
   std::string input;
-  {
-    fseek(f, 0, SEEK_END);
+  fseek(f, 0, SEEK_END);
 
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET); // same as rewind(f);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET); // same as rewind(f);
 
-    char *s = new char[fsize + 1];
-    fread(s, fsize, 1, f);
-    fclose(f);
-    s[fsize] = 0;
+  char *s = new char[fsize + 1];
+  fread(s, fsize, 1, f);
+  fclose(f);
+  s[fsize] = 0;
 
-    size_t n = fsize - 1;
-    while (n > 0 && s[n] == '\n')
-      n--;
-
-    return std::string_view(s, n + 1);
+  size_t n = fsize - 1;
+  while (n > 0 && s[n] == '\n') {
+    n--;
   }
+
+  return std::string_view(s, n + 1);
+}
+
+static inline std::string read_file_as_string(const char *filename) {
+  FILE *f = fopen(filename, "r");
+  if (!f) {
+    fprintf(stderr, "failed to open file '%s'\n", filename), abort();
+  }
+  std::string input;
+  fseek(f, 0, SEEK_END);
+
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET); // same as rewind(f);
+
+  char *s = new char[fsize + 1];
+  fread(s, fsize, 1, f);
+  fclose(f);
+  s[fsize] = 0;
+
+  size_t n = fsize;
+  while (n > 0 && s[--n] == '\n')
+    ;
+
+  input = std::string(s, n + 1);
+  delete[] s;
+
+  return input;
+}
+
+static inline std::string replace(std::string input, const std::string &thing,
+                                  const std::string &with) {
+  while (true) {
+    if (auto it = input.find(thing); it != std::string::npos)
+      input.replace(it, thing.size(), with);
+
+    else
+      break;
+  }
+
+  return input;
 }
 
 static inline std::string_view read_file_as_string_view(const char *filename) {
@@ -162,7 +214,7 @@ static inline std::string_view chop_by_delim(std::string_view view,
 
 static inline std::string_view &trimr(std::string_view &s) {
   auto i = s.find_last_not_of(" \t\n\r\f\v");
-  if (i != -1)
+  if (i != std::string_view::npos)
     s = s.substr(0, i + 1);
 
   return s;
@@ -170,11 +222,12 @@ static inline std::string_view &trimr(std::string_view &s) {
 
 static inline std::string_view &triml(std::string_view &s) {
   auto i = s.find_first_not_of(" \t\n\r\f\v");
-  if (i != -1)
+  if (i != std::string_view::npos)
     s.remove_prefix(i);
 
   return s;
 }
+
 static inline std::vector<std::string_view> split_lines(std::string_view view,
                                                         char delim = '\n') {
   std::vector<std::string_view> ret;
@@ -195,7 +248,7 @@ static inline std::vector<std::string_view> split_lines(std::string_view view,
 }
 
 static inline std::vector<std::string_view> split_by(std::string_view view,
-                                                     char delim) {
+                                                     std::string_view delim) {
   view = trimr(view);
   std::vector<std::string_view> ret;
   while (view.size() > 0) {
@@ -210,6 +263,11 @@ static inline std::vector<std::string_view> split_by(std::string_view view,
   return ret;
 }
 
+static inline std::vector<std::string_view> split_by(std::string_view view,
+                                                     char delim) {
+  return split_by(view, std::string_view(&delim, 1));
+}
+
 static inline std::vector<std::string_view>
 read_lines_as_string_view(const char *filename) {
   auto lines = read_file_as_string_view(filename);
@@ -217,7 +275,21 @@ read_lines_as_string_view(const char *filename) {
 }
 
 template <typename T, typename Op>
-auto map(const std::vector<T> &input, Op fn)
+std::vector<T> filter(Op &&fn, const std::vector<T> &v) {
+
+  const auto n = v.size();
+  std::vector<T> ret;
+  ret.reserve(n);
+  for (auto &&val : v) {
+    if (fn(val)) {
+      ret.emplace_back(val);
+    }
+  }
+  return ret;
+}
+
+template <typename T, typename Op>
+auto map(Op &&fn, const std::vector<T> &input)
     -> std::vector<decltype(fn(input[0]))> {
   std::vector<decltype(fn(input[0]))> ret;
   ret.reserve(input.size());
@@ -227,12 +299,87 @@ auto map(const std::vector<T> &input, Op fn)
   return ret;
 }
 
-static inline int to_int(std::string_view s) {
-  return std::stoi(std::string(s));
+template <typename T, typename R, typename FoldOp>
+R foldl(const R &i, const std::vector<T> &xs, FoldOp fn) {
+  auto ret = i;
+  for (const auto &x : xs) {
+    ret = fn(ret, x);
+  }
+  return ret;
 }
 
-// static inline std::vector<std::string_view> readGrid(const std::string &path)
-// {}
+// return the index
+template <typename T, typename Op>
+Maybe<i64> findfirst(Op &&fn, const std::vector<T> &h) {
+  auto res = std::find(h.begin(), h.end(), fn);
+  if (res != h.end()) {
+    return {1, distance(h.begin(), res)};
+  } else {
+    return {0, -1};
+  }
+}
+
+// return the indices
+template <typename T, typename Op>
+std::vector<i64> findall(Op &&fn, const std::vector<T> &h) {
+  const auto n = h.size();
+  std::vector<i64> ret;
+  ret.reserve(n);
+  for (size_t i = 0; i < n; ++i) {
+    if (fn(h[i])) {
+      ret.emplace_back(i);
+    }
+  }
+  return ret;
+}
+template <typename T> T prod(const std::vector<T> &x) {
+  auto ret = foldl(T(1), x, [](const T &a, const T &b) -> T { return a * b; });
+  return ret;
+}
+static inline i64 to_int(std::string_view s) {
+  return std::stoll(std::string(s));
+}
+
+template <typename T, typename U>
+std::vector<std::pair<T, U>> zip(const std::vector<T> &a,
+                                 const std::vector<U> &b) {
+  std::vector<std::pair<T, U>> ret;
+
+  for (size_t i = 0; i < std::min(a.size(), b.size()); ++i) {
+    ret.emplace_back(a[i], b[i]);
+  }
+  return ret;
+}
+
+static inline Maybe<i64> try_int(std::string_view s) {
+  try {
+    return {1, std::stoll(std::string(s))};
+  } catch (...) {
+    return {0, {}};
+  }
+}
+
+static inline bool inRange(std::string_view str, int min, int max) {
+  auto num = try_int(str);
+  if (!num.has_value) {
+    return false;
+  }
+
+  return min <= num.unwrap && num.unwrap <= max;
+}
+
+template <typename T> static inline bool match(const T &) { return true; }
+
+template <typename T, typename R>
+static inline bool match(const T &lhs, const R &rhs) {
+  return (lhs == rhs);
+}
+
+template <typename T, typename U, typename... Args>
+static inline bool match(const T &first, const U &second, const Args &...rest) {
+  return (first == second) || match(first, rest...);
+}
+
 } // namespace utils
 
 #endif // UTILS_HPP__
