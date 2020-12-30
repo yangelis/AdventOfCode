@@ -228,6 +228,20 @@ static inline std::string_view &triml(std::string_view &s) {
   return s;
 }
 
+static inline std::string_view
+join_string_view(const std::vector<std::string_view> &vec) {
+  char *buffer = new char[1024];
+  size_t i = 0;
+  for (const auto &v : vec) {
+    for (size_t j = 0; j < v.size(); ++j) {
+      buffer[i + j] = v[j];
+    }
+    buffer[i + v.size()] = ' ';
+    i += v.size() + 1;
+  }
+  return {buffer, i};
+}
+
 static inline std::vector<std::string_view> split_lines(std::string_view view,
                                                         char delim = '\n') {
   std::vector<std::string_view> ret;
@@ -258,7 +272,7 @@ static inline std::vector<std::string_view> split_by(std::string_view view,
       break;
     }
     ret.push_back(view.substr(0, len));
-    view = view.substr(len + 1);
+    view = view.substr(len + delim.size());
   }
   return ret;
 }
