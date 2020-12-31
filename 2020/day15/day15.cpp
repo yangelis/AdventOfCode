@@ -40,7 +40,9 @@ auto solve2(vector<i64> &line, int iterations) {
 }
 
 int main(int arc, char *argv[]) {
-  auto lines = utils::map(utils::to_int, utils::split_by(utils::read_file_as_string_view(argv[1]), ','));
+  auto lines = utils::map(
+      utils::to_int,
+      utils::split_by(utils::read_file_as_string_view(argv[1]), ','));
 
   // cout << solve(lines, 2020) << '\n';
   cout << solve2(lines, 2020) << '\n';

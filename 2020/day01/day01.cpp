@@ -1,9 +1,9 @@
-#include "../utils.hpp"
+#include "../../utils.hpp"
 #include <algorithm>
 
 using namespace std;
 
-int part1(vector<int> &lines) {
+int part1(vector<i64> &lines) {
 
   const size_t N = lines.size();
   for (size_t i = 0; i < N; ++i) {
@@ -15,7 +15,7 @@ int part1(vector<int> &lines) {
   return -1;
 }
 
-int part2(vector<int> &lines) {
+int part2(vector<i64> &lines) {
 
   const size_t N = lines.size();
   for (size_t i = 0; i < N - 1; ++i) {
@@ -30,13 +30,13 @@ int part2(vector<int> &lines) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc == 1){
+  if (argc == 1) {
     cerr << "No input file given\n";
     exit(1);
   }
 
-  auto lines = utils::map(utils::read_lines_as_string_view(argv[1]),
-                            utils::to_int);
+  auto lines =
+      utils::map(utils::to_int, utils::read_lines_as_string_view(argv[1]));
 
   cout << part1(lines) << '\n';
   cout << part2(lines) << '\n';
