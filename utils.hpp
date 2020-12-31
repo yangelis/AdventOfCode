@@ -2,6 +2,7 @@
 #define UTILS_HPP__
 
 #include <algorithm>
+#include <assert.h>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -45,7 +46,13 @@ template <typename T> struct Matrix {
   Matrix(size_t r, size_t c) : rows(r), cols(c) { data = new T[rows * cols](); }
   Matrix(const Matrix<T> &m) : rows(m.rows), cols(m.cols), data(m.data) {}
   Matrix(Matrix<T> &&m) : rows(m.rows), cols(m.cols), data(std::move(m.data)) {}
-
+  template <size_t r, size_t c> Matrix(T (&m)[r][c]) : Matrix(r, c) {
+    for (size_t i = 0; i < rows; ++i) {
+      for (size_t j = 0; j < cols; ++j) {
+        (*this)(i, j) = m[i][j];
+      }
+    }
+  }
   T &operator()(size_t i, size_t j) { return data[j + i * cols]; }
 
   const T &operator()(size_t i, size_t j) const { return data[j + i * cols]; }
@@ -108,6 +115,46 @@ template <typename T> struct Matrix {
   }
 };
 
+template <typename T> Matrix<T> hcat(const Matrix<T> &a, const Matrix<T> &b) {
+  assert(a.rows == b.rows);
+  size_t rows = a.rows;
+  size_t cols = a.cols + b.cols;
+  Matrix<T> ret(rows, cols);
+
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = 0; j < a.cols; ++j) {
+      ret(i, j) = a(i, j);
+    }
+  }
+
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = a.cols; j < cols; ++j) {
+      ret(i, j) = b(i, j - a.cols);
+    }
+  }
+  return ret;
+}
+
+template <typename T> Matrix<T> hcat(const std::vector<Matrix<T>> &vec) {
+  size_t rows = vec[0].rows;
+  size_t cols = 0;
+  for (const auto &m : vec) {
+    cols += m.cols;
+  }
+  Matrix<T> ret(rows, cols);
+
+  size_t cols_offset = 0;
+  for (const auto &m : vec) {
+    for (size_t i = 0; i < m.rows; ++i) {
+      for (size_t j = 0; j < m.cols; ++j) {
+        ret(i, j + cols_offset) = m(i, j);
+      }
+    }
+    cols_offset += m.cols;
+  }
+
+  return ret;
+}
 // "stolen" from zhiayang
 // https://github.com/zhiayang/adventofcode/blob/master/libs/aoc2.h
 static inline std::string_view readFileRaw(const std::string &path) {
