@@ -373,6 +373,21 @@ template <typename T> static inline T sum(const std::vector<T> &xs) {
   return foldl(T(), xs, [](const T &a, const T &b) -> T { return a + b; });
 }
 
+template <typename T>
+static inline std::vector<T> arange(T start, T stop, T step = 1) {
+  std::vector<T> values;
+
+  if (step > 0) {
+    for (T value = start; value < stop; value += step) {
+      values.push_back(value);
+    }
+  } else {
+    for (T value = start; value > stop; value += step) {
+      values.push_back(value);
+    }
+  }
+  return values;
+}
 // return the index
 template <typename T, typename Op>
 Maybe<i64> findfirst(Op &&fn, const std::vector<T> &h) {
@@ -443,6 +458,19 @@ static inline bool match(const T &lhs, const R &rhs) {
 template <typename T, typename U, typename... Args>
 static inline bool match(const T &first, const U &second, const Args &...rest) {
   return (first == second) || match(first, rest...);
+}
+
+template <typename T, typename R>
+static inline std::vector<std::pair<T, R>> cartesian(const std::vector<T> &xs,
+                                                     const std::vector<R> &ys) {
+
+  std::vector<std::pair<T, R>> ret;
+  for (const auto &x : xs) {
+    for (const auto &y : ys) {
+      ret.emplace_back(x, y);
+    }
+  }
+  return ret;
 }
 
 } // namespace utils
