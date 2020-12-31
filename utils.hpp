@@ -369,6 +369,10 @@ R foldl(const R &i, const std::vector<T> &xs, FoldOp fn) {
   return ret;
 }
 
+template <typename T> static inline T sum(const std::vector<T> &xs) {
+  return foldl(T(), xs, [](const T &a, const T &b) -> T { return a + b; });
+}
+
 // return the index
 template <typename T, typename Op>
 Maybe<i64> findfirst(Op &&fn, const std::vector<T> &h) {
