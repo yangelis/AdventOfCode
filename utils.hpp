@@ -27,6 +27,31 @@ using f64 = double;
 
 namespace utils {
 
+struct V2 {
+  int x{0};
+  int y{0};
+  V2() {}
+  V2(int x, int y) : x(x), y(y) {}
+};
+
+inline V2 operator+(const V2 &a, const V2 &b) { return {a.x + b.x, a.y + b.y}; }
+inline V2 operator-(const V2 &a, const V2 &b) { return {a.x - b.x, a.y - b.y}; }
+inline bool operator==(const V2 &a, const V2 &b) {
+  return a.x == b.x && a.y == b.y;
+}
+inline bool operator<(const V2 &a, const V2 &b) {
+  return a.x < b.x ? true : (b.x < a.x ? false : (a.y < b.y ? true : false));
+}
+inline bool operator>(const V2 &a, const V2 &b) { return b < a; }
+inline bool operator!=(const V2 &a, const V2 &b) { return !(a == b); }
+inline bool operator<=(const V2 &a, const V2 &b) { return !(b < a); }
+inline bool operator>=(const V2 &a, const V2 &b) { return !(a < b); }
+
+double manhattan_dist(const V2 &a, const V2 &b) {
+  return std::abs(b.x - a.x) + std::abs(b.y - a.y);
+}
+
+// mod that works
 template <typename T> T mod(T a, T b) { return (a % b + b) % b; }
 //////////////////////////////////////////////////
 // Maybe
@@ -155,6 +180,28 @@ template <typename T> Matrix<T> hcat(const std::vector<Matrix<T>> &vec) {
 
   return ret;
 }
+
+template <typename T, typename TIter = decltype(std::begin(std::declval<T>())),
+          typename = decltype(std::end(std::declval<T>()))>
+constexpr auto enumerate(T &&iterable) {
+  struct iterator {
+    size_t i;
+    TIter iter;
+    bool operator!=(const iterator &other) const { return iter != other.iter; }
+    void operator++() {
+      ++i;
+      ++iter;
+    }
+    auto operator*() const { return std::tie(i, *iter); }
+  };
+  struct iterable_wrapper {
+    T iterable;
+    auto begin() { return iterator{0, std::begin(iterable)}; }
+    auto end() { return iterator{0, std::end(iterable)}; }
+  };
+  return iterable_wrapper{std::forward<T>(iterable)};
+}
+
 // "stolen" from zhiayang
 // https://github.com/zhiayang/adventofcode/blob/master/libs/aoc2.h
 static inline std::string_view readFileRaw(const std::string &path) {
@@ -349,6 +396,33 @@ std::vector<T> filter(Op &&fn, const std::vector<T> &v) {
   return ret;
 }
 
+template <typename... Types>
+std::size_t GetVectorsSize(const std::vector<Types> &...vs) {
+  constexpr const auto nArgs = sizeof...(Types);
+  const std::size_t sizes[] = {vs.size()...};
+  if (nArgs > 1) {
+    for (size_t i = 1; i < nArgs; ++i) {
+      if (sizes[0] == sizes[i]) {
+        continue;
+      }
+      fprintf(stderr, "Vectors have different lenght\n");
+      exit(1);
+    }
+  }
+  return sizes[0];
+}
+
+template <typename F, typename... Types>
+auto map(F &&fn, const std::vector<Types> &...input)
+    -> std::vector<decltype(fn(input[0]...))> {
+  const auto size = GetVectorsSize(input...);
+  std::vector<decltype(fn(input[0]...))> ret(size);
+  for (size_t i = 0; i < size; ++i) {
+    ret[i] = fn(input[i]...);
+  }
+  return ret;
+}
+
 template <typename T, typename Op>
 auto map(Op &&fn, const std::vector<T> &input)
     -> std::vector<decltype(fn(input[0]))> {
@@ -388,20 +462,21 @@ static inline std::vector<T> arange(T start, T stop, T step = 1) {
   }
   return values;
 }
+
 // return the index
-template <typename T, typename Op>
-Maybe<i64> findfirst(Op &&fn, const std::vector<T> &h) {
-  auto res = std::find(h.begin(), h.end(), fn);
+template <typename F, typename T>
+Maybe<i64> findfirst(F &&fn, const std::vector<T> &h) {
+  auto res = std::find_if(h.begin(), h.end(), fn);
   if (res != h.end()) {
-    return {1, distance(h.begin(), res)};
+    return {1, std::distance(h.begin(), res)};
   } else {
     return {0, -1};
   }
 }
 
 // return the indices
-template <typename T, typename Op>
-std::vector<i64> findall(Op &&fn, const std::vector<T> &h) {
+template <typename F, typename T>
+std::vector<i64> findall(F &&fn, const std::vector<T> &h) {
   const auto n = h.size();
   std::vector<i64> ret;
   ret.reserve(n);
