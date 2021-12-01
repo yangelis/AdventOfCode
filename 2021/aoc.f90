@@ -1,6 +1,6 @@
 module aoc
   use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
-    f32 => real32, f64 => real64, f128 => real128
+       f32 => real32, f64 => real64, f128 => real128
   implicit none
 
   public String, new_str, strfree, readfile, countlines
@@ -8,10 +8,10 @@ module aoc
 
 
   type, public :: String
-    character(len=:), allocatable :: str
-    integer :: str_size
-  contains
-    final :: str_dealloc
+     character(len=:), allocatable :: str
+     integer :: str_size
+   contains
+     final :: str_dealloc
   end type String
 
 contains
@@ -30,7 +30,7 @@ contains
     type(String), intent(inout) :: this
 
     if (allocated(this%str)) deallocate (this%str)
-  end subroutine
+  end subroutine str_dealloc
 
   subroutine strfree(str)
     implicit none
@@ -38,7 +38,7 @@ contains
 
     deallocate(str%str)
     str%str_size = 0
-  end subroutine
+  end subroutine strfree
 
 
   subroutine readfile(filename, buffer)
@@ -49,7 +49,7 @@ contains
     logical :: file_exists
 
     open (access='stream', action='read', file=filename, &
-      form='unformatted', iostat=rc, unit=fd)
+         form='unformatted', iostat=rc, unit=fd)
 
     if (rc /= 0) stop 'Error: opening file failed'
 
@@ -61,7 +61,7 @@ contains
     if (rc /= 0) stop 'Error: open failed'
     read (fd, iostat=rc) buffer%str
     close (fd)
-  end subroutine
+  end subroutine readfile
 
   function countlines(filename) result(n)
     implicit none
@@ -77,14 +77,14 @@ contains
     open (read_unit, file = filename)
 
     do
-    read(read_unit,'(A)', iostat=stat)
-    if (stat > 0)  then
-      exit
-    else if (stat < 0) then
-      exit
-    else
-      n = n + 1
-    end if
+       read(read_unit,'(A)', iostat=stat)
+       if (stat > 0)  then
+          exit
+       else if (stat < 0) then
+          exit
+       else
+          n = n + 1
+       end if
     end do
 
     close(read_unit)
