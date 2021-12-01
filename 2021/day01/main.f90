@@ -1,49 +1,16 @@
-function countlines(filename) result(n)
-  implicit none
-
-  character (len=10), intent(in) :: filename
-  integer :: Reason
-  integer, parameter :: read_unit = 9
-  integer :: n
-
-  n = 0
-
-  ! opening the file for reading
-  open (read_unit, file = filename)
-
-  do
-  read(read_unit,'(A)', IOSTAT=Reason)
-  if (Reason > 0)  then
-    exit
-  else if (Reason < 0) then
-    exit
-  else
-    n = n + 1
-  end if
-  end do
-
-  close(read_unit)
-
-  return
-end function countlines
-
-
 integer function part1(numbers, len)
   implicit none
-  integer :: r 
+  integer :: i
   integer, intent(in) :: len
   integer, intent(in) :: numbers(len)
-  integer :: i
 
-  r = 0
-
+  part1 = 0
   do i = 2,len
   if (numbers(i) > numbers(i-1)) then
-    r = r + 1
+    part1 = part1 + 1
   end if
   end do
 
-  part1 = r
 end function part1
 
 function summation(numbers, len) result(v)
@@ -51,13 +18,11 @@ function summation(numbers, len) result(v)
   integer, intent(in) :: len
   integer, dimension(:), intent(in) :: numbers
   integer, allocatable :: v(:)
-  integer :: i
-  integer :: n
-  
+  integer :: i, n
+
   n = len - 2
 
   allocate(v(n))
-
   do i =1, n
   v(i) = numbers(i) + numbers(i+1) + numbers(i+2)
   end do
@@ -83,7 +48,18 @@ integer function part2(numbers, len)
   part2 = part1(numbers2, len-2)
 end function part2
 
-subroutine str2int(filename, arr, n)
+subroutine str2int(str, arr, n)
+  use aoc, only: String, readfile
+  implicit none
+  type(String), intent(in) :: str
+  integer, intent(in) :: n
+  integer, dimension(n), intent(inout) :: arr
+  integer :: stat
+
+  read(str%str, *, iostat=stat) arr
+end subroutine str2int
+
+subroutine file2int(filename, arr, n)
   implicit none
   character(len=*), intent(in) :: filename
   integer, intent(in) :: n
@@ -91,32 +67,35 @@ subroutine str2int(filename, arr, n)
   integer :: stat
   integer :: read_unit = 9
 
-  open (read_unit, file=filename)
+  open(read_unit, file=filename)
   read(read_unit, *, iostat=stat) arr
   close(read_unit)
-end subroutine str2int
+end subroutine file2int
 
 program day01
+  use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
+    f32 => real32, f64 => real64, f128 => real128
+  use aoc, only: String, readfile, strfree, countlines
   implicit none
 
   integer :: nlines
   integer, allocatable :: numbers(:)
-  character (len=10) :: filename
+  character (len=30) :: filename
   integer :: part1_sol, part2_sol
+  type(String) :: lines
 
-  integer :: countlines, part1, part2
+  integer :: part1, part2
 
   ! filename = 'test.txt'
   filename = 'input.txt'
   write(*,*) "Reading file: ", filename
 
   nlines = countlines(filename)
-
   write(*,*) "Number of lines: ", nlines
-
   allocate(numbers(nlines))
 
-  call str2int(filename, numbers, nlines)
+  call readfile(filename, lines)
+  call str2int(lines, numbers, nlines)
 
   part1_sol = part1(numbers, nlines)
 
@@ -126,5 +105,6 @@ program day01
   write(*,*) "Part2: ", part2_sol
 
   deallocate(numbers)
+  call strfree(lines)
 
 end program day01
