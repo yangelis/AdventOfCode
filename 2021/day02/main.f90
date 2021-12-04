@@ -30,13 +30,14 @@ contains
     start_pos%y = 0
 
     do i=1, n
-       if ( ctx(2*i - 1)%data(1:1) .eq. 'f' ) then
+       select case (ctx(2*i - 1)%data(1:1))
+       case ('f')
           start_pos%x = start_pos%x + str2int(ctx(2*i))
-       elseif ( ctx(2*i - 1)%data(1:1) .eq. 'u' ) then
+       case ('u')
           start_pos%y = start_pos%y - str2int(ctx(2*i))
-       elseif ( ctx(2*i - 1)%data(1:1) .eq. 'd' ) then
+       case ('d')
           start_pos%y = start_pos%y + str2int(ctx(2*i))
-       end if
+       end select
     end do
 
     r = start_pos%x * start_pos%y
@@ -57,14 +58,15 @@ contains
     start_pos%aim = 0
 
     do i=1, n
-       if ( ctx(2*i - 1)%data(1:1) .eq. 'f' ) then
+       select case (ctx(2*i - 1)%data(1:1))
+       case ('f')
           start_pos%x = start_pos%x + str2int(ctx(2*i))
           start_pos%y = start_pos%y + start_pos%aim * str2int(ctx(2*i))
-       elseif ( ctx(2*i - 1)%data(1:1) .eq. 'u' ) then
+       case ('u')
           start_pos%aim = start_pos%aim - str2int(ctx(2*i))
-       elseif ( ctx(2*i - 1)%data(1:1) .eq. 'd' ) then
+       case ('d')
           start_pos%aim = start_pos%aim + str2int(ctx(2*i))
-       end if
+       end select
     end do
 
     r = start_pos%x * start_pos%y
