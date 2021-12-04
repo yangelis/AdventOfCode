@@ -3,7 +3,8 @@ module aoc
        f32 => real32, f64 => real64, f128 => real128
   implicit none
 
-  public String, new_str, strfree, readfile, countlines, str2int, splitlinesby
+  private
+  public String, new_str, strfree, readfile, countlines, str2int, splitlinesby, readlines
 
 
 
@@ -30,41 +31,17 @@ contains
     type(String), intent(inout) :: this
 
     if (allocated(this%data)) deallocate (this%data)
+    this%str_size = 0
   end subroutine str_dealloc
 
   subroutine strfree(str)
-    implicit none
     type(String), intent(inout) :: str
 
     deallocate(str%data)
     str%str_size = 0
   end subroutine strfree
 
-
-  subroutine readfile(filename, buffer)
-    implicit none
-    integer :: rc, fd = 99, file_size
-    character (len=30), intent(in) :: filename
-    type(String), intent(out) :: buffer
-    logical :: file_exists
-
-    open (access='stream', action='read', file=filename, &
-         form='unformatted', iostat=rc, unit=fd)
-
-    if (rc /= 0) stop 'Error: opening file failed'
-
-    inquire (exist=file_exists, file=filename, size=file_size)
-
-    allocate(character(len=file_size) :: buffer%data)
-    buffer%str_size = file_size
-
-    if (rc /= 0) stop 'Error: open failed'
-    read (fd, iostat=rc) buffer%data
-    close (fd)
-  end subroutine readfile
-
   function countlines(filename) result(n)
-    implicit none
 
     character (len=10), intent(in) :: filename
     integer :: stat
@@ -92,6 +69,53 @@ contains
     return
   end function countlines
 
+  subroutine readfile(filename, buffer)
+    integer :: rc, fd, file_size
+    character (len=30), intent(in) :: filename
+    type(String), intent(out) :: buffer
+    logical :: file_exists
+
+    open (access='stream', action='read', file=filename, &
+         form='unformatted', iostat=rc, newunit=fd)
+
+    if (rc /= 0) stop 'Error: opening file failed'
+
+    inquire (exist=file_exists, file=filename, size=file_size)
+
+    allocate(character(len=file_size) :: buffer%data)
+    buffer%str_size = file_size
+
+    if (rc /= 0) stop 'Error: open failed'
+    read (fd, iostat=rc) buffer%data
+    close (fd)
+  end subroutine readfile
+
+  function readlines(filename) result(lines)
+    integer :: i, nlines
+    integer :: start, endp
+    character (len=1) :: nl
+    character (len=30), intent(in) :: filename
+    type(String) :: file_content
+    type(String), allocatable :: lines(:)
+
+    nl = new_line("")
+
+    call readfile(filename, file_content)
+
+    nlines = countlines(filename)
+    allocate(lines(nlines))
+
+    start = 1
+    endp = scan(file_content%data, nl) - 1
+    do i = 1, nlines
+       lines(i)%data = file_content%data(start:endp)
+       lines(i)%str_size = endp - start + 1
+       start = endp + 2
+       endp = scan(file_content%data(start:), nl)  + start - 2
+    end do
+
+  end function readlines
+
   integer function str2int(str) result(r)
     type(String), intent(in) :: str
     integer :: stat
@@ -100,7 +124,6 @@ contains
 
   ! splits each line into two strings
   function splitlinesby(str, nlines, ch) result(content)
-    implicit none
     type(String), intent(in) :: str
     integer, intent(in) :: nlines
     character (len=1), intent(in) :: ch
