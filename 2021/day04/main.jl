@@ -14,6 +14,32 @@ function parseboards(lines::Vector{String})::Vector{Matrix{Int}}
   return boards
 end
 
+
+function part1(drawer::Vector{Int}, boards::Vector{Matrix{Int}})
+  selected = similar(boards)
+  n = length(boards)
+  for i=1:n
+    selected[i] = zeros(5, 5)
+  end
+
+  for i = 1:length(drawer)
+    for j = 1:n
+      ij = findfirst(==(drawer[i]), boards[j])
+      if !isnothing(ij)
+        selected[j][ij] = 1
+
+        if sum(selected[j][ij[1], :]) == 5 || sum(selected[j][:, ij[2]]) == 5
+          s = 0
+          for jj in findall(==(0), selected[j])
+            s += boards[j][jj]
+          end
+          return s * drawer[i]
+        end
+      end
+    end
+  end
+end
+
 function part2(drawer::Vector{Int}, boards::Vector{Matrix{Int}})
   selected = similar(boards)
   states = similar(boards)
@@ -47,31 +73,6 @@ function part2(drawer::Vector{Int}, boards::Vector{Matrix{Int}})
     s += boards[won_already[end]][jj]
   end
   return s * won[end]
-end
-
-function part1(drawer::Vector{Int}, boards::Vector{Matrix{Int}})
-  selected = similar(boards)
-  n = length(boards)
-  for i=1:n
-    selected[i] = zeros(5, 5)
-  end
-
-  for i = 1:length(drawer)
-    for j = 1:n
-      ij = findfirst(==(drawer[i]), boards[j])
-      if !isnothing(ij)
-        selected[j][ij] = 1
-
-        if sum(selected[j][ij[1], :]) == 5 || sum(selected[j][:, ij[2]]) == 5
-          s = 0
-          for jj in findall(==(0), selected[j])
-            s += boards[j][jj]
-          end
-          return s * drawer[i]
-        end
-      end
-    end
-  end
 end
 
 
