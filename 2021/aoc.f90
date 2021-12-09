@@ -9,8 +9,8 @@ module aoc
 
 
   type, public :: String
-     character(len=:), allocatable :: data
      integer :: str_size
+     character(len=:), allocatable :: data
    contains
      final :: str_dealloc
   end type String
@@ -21,7 +21,6 @@ contains
 
     new_str%data = s
     new_str%str_size = len(s)
-
   end function new_str
 
 
