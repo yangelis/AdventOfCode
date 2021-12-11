@@ -10,7 +10,7 @@ function part1(lines::Vector{String})
             if c in "{[(<"
                 push!(stack, table[c])
             elseif pop!(stack) != c
-                println("Line:", line, ", illegac char:", c)
+                println("Line:", line, ", illegal char:", c)
                 s += score[c]
                 break
             end
