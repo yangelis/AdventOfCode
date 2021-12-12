@@ -10,4 +10,4 @@ dot -Tpng graph.dot -o ./figs/graph.png
 
 And there we go:
 
-![graph][./figs/graph.png]
+![graph](./figs/graph.png)
