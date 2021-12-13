@@ -1,5 +1,9 @@
 FC       := gfortran
-FCFLAGS  := -std=f2008 -ffree-form -Wall -Wextra -Wpedantic -I.. -O0 -ggdb
+FCFLAGS  := -std=f2008 -ffree-form -Wall -Wextra -Wpedantic -fimplicit-none \
+            -fcheck=all -I.. -O0 -ggdb -Wline-truncation \
+            -Wcharacter-truncation -Wsurprising -Waliasing -fno-omit-frame-pointer \
+            -Wimplicit-interface -Wunused-parameter -fwhole-file -fbacktrace -Wrealloc-lhs
+
 TARGET = day03
 
 .PHONY: all

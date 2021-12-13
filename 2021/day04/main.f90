@@ -1,74 +1,12 @@
 module day04
   use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
        f32 => real32, f64 => real64, f128 => real128
-  use aoc, only: String, str2int, readlines, countlines, new_str
+  use aoc, only: Pair, String, StringView, Veci32, VecSV, readlines,&
+       & sv_from_characters, split, new_veci32
   implicit none
 
-  type, public :: Pair
-     integer :: first
-     integer :: second
-  end type Pair
-
-  type, public :: StringView
-     character(len=:), pointer :: data
-     integer(i32) :: endp
-  end type StringView
-
-  type, public :: Veci32
-     integer(i32) :: n, fixed_size
-     integer(i32), allocatable :: data(:)
-   contains
-     final :: vec_dealloc
-  end type Veci32
-
-  type, public :: VecSV
-     integer(i32) :: n
-     type(StringView), allocatable :: data(:)
-  end type VecSV
 
 contains
-  type(Veci32) function new_veci32(n)
-    integer(i32), intent(in) :: n
-    if ( n < 100 ) then
-       new_veci32%fixed_size = 100
-    else
-       new_veci32%fixed_size = n
-    end if
-    new_veci32%n = n
-    allocate(new_veci32%data(new_veci32%fixed_size))
-    new_veci32%data = 0
-  end function new_veci32
-
-  subroutine vec_dealloc(this)
-    type(Veci32), intent(inout) :: this
-
-    if (allocated(this%data)) deallocate (this%data)
-    this%n = 0
-    this%fixed_size = 0
-  end subroutine vec_dealloc
-
-  function sv_from_characters(n, s) result(sv)
-    integer(i32), intent(in) :: n
-    character(len=n), target, intent(in) :: s
-    type(StringView) :: sv
-    integer(i32) :: i, m, nn
-
-    nn = n
-
-    do i = n,1,-1
-       if (s(i:i) /= ' ') exit
-       nn = nn -1
-    end do
-
-    m = 0
-    do i = 1, nn
-       m = m + 1
-       if (s(i:i) .eq. '\0') exit
-    end do
-
-    sv%data => s(1:m)
-    sv%endp = m
-  end function sv_from_characters
 
   function string_from_characters(n, s) result(str)
     integer(i32), intent(in) :: n
@@ -190,46 +128,6 @@ contains
     end do
   end function split_by
 
-  function split(str, delim, limit) result(strs)
-    type(String), intent(in) :: str
-    character(len=1), intent(in) :: delim
-    integer(i32), intent(in) :: limit
-    integer(i32) :: i, j, k, n, r, count
-    type(VecSV) :: strs
-
-    allocate(strs%data(limit))
-    count = 0
-
-    i = 1 ! first index
-    n = str%str_size
-
-    r = scan(str%data(i:), delim)
-    if (r > 0) then
-       j = r
-       k = r + 1
-       do while (0 < j .and. j <= n .and. count /= limit-1)
-          if (i < k ) then
-             if (i < j) then
-                count = count + 1
-                strs%data(count) = sv_from_characters(len(str%data(i:j-1)), str%data(i:j-1))
-             end if
-             i = k
-          end if
-          if ( k <= j ) k = j + 1
-          r = scan(str%data(k:) , delim)
-          if ( r == 0 ) exit
-          if (r > 0) r = r + k - 1
-          j = r
-          k = r + 1
-       end do
-    end if
-
-    if ( i <= n ) then
-       count = count + 1
-       strs%data(count) = sv_from_characters(len(str%data(i:)), str%data(i:))
-    end if
-    strs%n = count
-  end function split
 
   function findall(v1, m2) result(indices)
     integer(i32), intent(in) :: v1

@@ -1,13 +1,8 @@
 module day03
   use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
        f32 => real32, f64 => real64, f128 => real128
-  use aoc, only: String, str2int, readlines, countlines
+  use aoc, only: Pair, String, str2int, readlines, countlines
   implicit none
-
-  type, public :: Pair
-     integer :: first
-     integer :: second
-  end type Pair
 
 contains
 
