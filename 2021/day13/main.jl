@@ -25,27 +25,57 @@ function create_paper(pos)
     return paper
 end
 
-function part1(paper, folds)
+function fold_paper(paper, folds, nfolds)
     fold_axes = map(x->(x[1][end], parse(Int, x[2])), split.(folds, "="))
     new_paper = deepcopy(paper)
+    old_paper = deepcopy(new_paper)
 
-    for fold in fold_axes
-        if fold[1] == 'y'
-            new_paper = reverse(paper[fold[2]+2:end, :], dims=1)
-        elseif fold[1] == 'x'
-            new_paper = reverse(paper[:, fold[2]+2:end], dims=2)
+    dims = size(paper)
+
+    for i = 1:nfolds
+        if fold_axes[i][1] == 'y'
+            new_paper = reverse(new_paper[fold_axes[i][2]+2:end, :], dims=1)
+            dims = (div(dims[1], 2), dims[2])
+        elseif fold_axes[i][1] == 'x'
+            new_paper = reverse(new_paper[:, fold_axes[i][2]+2:end], dims=2)
+            dims = (dims[1], div(dims[2], 2))
         end
         for (j, col) in enumerate(eachcol(new_paper))
             for (i, row) in enumerate(col)
-                if new_paper[i, j] == '#' && paper[i, j] == '#'
+                if new_paper[i, j] == '#' && old_paper[i, j] == '#'
                     new_paper[i, j] = '#'
-                elseif new_paper[i, j] != paper[i, j]
+                elseif new_paper[i, j] != old_paper[i, j]
                     new_paper[i, j] = '#'
                 end
             end
         end
+        # display_mat(new_paper)
+        # println("-------------")
+        old_paper = deepcopy(new_paper)
+    end
+    return (dims, new_paper)
+end
 
-        return count(==('#'), new_paper)
+function part1(folded_paper)
+    return count(==('#'), folded_paper)
+end
+
+function display_mat(m)
+    dims = size(m)
+    for i in 1:dims[1]
+        for j in 1:dims[2]
+            print(m[i, j])
+        end
+        println()
+    end
+end
+
+function display_mat(m, dims)
+    for i in 1:dims[1]
+        for j in 1:dims[2]
+            print(m[i, j])
+        end
+        println()
     end
 end
 
@@ -55,6 +85,11 @@ function main(filename::String)
 
     paper = create_paper(pos)
     folds = split(lines[2], "\n", keepempty=false)
+    println("Paper dimensions: ", size(paper))
 
-    println("Part1: ", part1(paper, folds))
+    d, folded_paper_once = fold_paper(paper, folds, 1)
+    println("Part1: ", part1(folded_paper_once))
+    d, r = fold_paper(paper, folds, length(folds))
+    println("Part2: ")
+    display_mat(r)
 end
