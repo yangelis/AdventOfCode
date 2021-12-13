@@ -17,6 +17,21 @@ function parse_graph(lines)
     graph
 end
 
+function dump_graph(filename, graph)
+    open(filename, "w") do file
+        println(file, "digraph {")
+        for (k, vals) in graph
+            for v in vals
+                println(file, " ", k,"->", v)
+                if !islowercase(k[1])
+                    println(file, " ", k, " [style=filled, color=\"0.2 0.2 0.5\"]")
+                end
+            end
+        end
+        println(file, "}")
+    end
+end
+
 function part1(graph::Dict{String, Vector{String}}, src, dst)
     s = 0
 
@@ -41,22 +56,39 @@ function part1(graph::Dict{String, Vector{String}}, src, dst)
     return s
 end
 
-function dump_graph(filename, graph)
-    open(filename, "w") do file
-        println(file, "digraph {")
-        for (k, vals) in graph
-            for v in vals
-                println(file, " ", k,"->", v)
-            end
+function part2(graph::Dict{String, Vector{String}}, src, dst)
+    s = 0
+
+    stack = Vector{Tuple{String, Vector{String}, Bool}}()
+    push!(stack, (src, [src], false))
+
+    while !isempty(stack)
+        nd, vs, counted = pop!(stack)
+
+        if nd == dst
+            s += 1
+            continue
         end
-        println(file, "}")
+
+        for g in graph[nd]
+            if !(g in vs) || isuppercase(g[1])
+                push!(stack, (g, union(vs, [g]), counted))
+                continue
+            end
+
+            if counted
+                continue
+            end
+            push!(stack, (g, vs, true))
+        end
     end
+    return s
 end
 
 function main(filename::String)
     lines = split.(readlines(filename), '-')
     graph = parse_graph(lines)
-    display(graph)
-    part1(graph, "start", "end")
-    dump_graph("graph.dot", graph)
+    println("Part1: ", part1(graph, "start", "end"))
+    println("Part2: ", part2(graph, "start", "end"))
+    # dump_graph("graph.dot", graph)
 end
