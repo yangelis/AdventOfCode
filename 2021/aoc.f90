@@ -256,4 +256,60 @@ contains
     this%fixed_size = 0
   end subroutine vec_dealloc
 
+  function findall1d(v1, n, m2) result(indices)
+    integer(i32), intent(in) :: v1
+    integer(i32), intent(in) :: n
+    integer(i32), intent(in) :: m2(n)
+    integer(i32), allocatable :: indices(:)
+    integer(i32) :: i
+
+    allocate(indices(n))
+    indices = -1
+
+    do i = 1, n
+       if (v1 == m2(i)) then
+          indices(i) = 1
+       end if
+    end do
+  end function findall1d
+
+  function findall2d(v1, n, m, m2) result(indices)
+    integer(i32), intent(in) :: v1
+    integer(i32), intent(in) :: n, m
+    integer(i32), intent(in) :: m2(n, m)
+    integer(i32), allocatable :: indices(:, :)
+    integer(i32) :: i, j
+
+    allocate(indices(n, m))
+    indices = -1
+
+    do j = 1, m
+       do i = 1, n
+          if (v1 == m2(i, j)) then
+             indices(i, j) = 1
+          end if
+       end do
+    end do
+  end function findall2d
+
+  function findall3d(v1, n, m, q, m2) result(indices)
+    integer(i32), intent(in) :: v1
+    integer(i32), intent(in) :: n, m, q
+    integer(i32), intent(in) :: m2(n, m, q)
+    integer(i32), allocatable :: indices(:, :, :)
+    integer(i32) :: i, j, k
+
+    allocate(indices(n, m, q))
+    indices = -1
+
+    do k = 1, q
+       do j = 1, m
+          do i = 1, n
+             if (v1 == m2(i, j, k)) then
+                indices(i, j, k) = 1
+             end if
+          end do
+       end do
+    end do
+  end function findall3d
 end module aoc

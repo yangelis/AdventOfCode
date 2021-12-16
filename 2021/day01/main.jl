@@ -1,4 +1,5 @@
-using Plots; gr()
+using Plots
+gr()
 Plots.GRBackend()
 
 function part1(numbers::Vector{Int64})
@@ -8,7 +9,6 @@ function part1(numbers::Vector{Int64})
             s += 1
         end
     end
-
     return s
 end
 
@@ -23,7 +23,6 @@ end
 
 function part2(numbers::Vector{Int64})
     v = summation(numbers)
-
     return (v, part1(v))
 end
 
@@ -43,7 +42,6 @@ function main(filename::String)
     p4 = histogram(numbers2, bins=100, background_color = RGB(0.2, 0.2, 0.2),
                    leg=false, title="Part2 Histogram")
 
-    plot(p1, p2, p3, p4, size=(1366, 768))
-    savefig("figs/day01_plots.png")
-
+    gui(plot(p1, p2, p3, p4, size=(1366, 768)))
+    # savefig("figs/day01_plots.png")
 end

@@ -1,5 +1,6 @@
 # using Plots
-using DelimitedFiles
+using GLMakie
+# using DelimitedFiles
 
 struct Direction
   s::String
@@ -71,6 +72,20 @@ function parse_directions(filename::String)
   return dirs
 end
 
+function visual(xsp, ysp, zs)
+    zmin, zmax = minimum(zs), maximum(zs)
+    cmap = :viridis
+    fig = Figure(resolution=(1366, 768))
+    # ax = Axis3(fig, aspect = :data, perspectiveness = 0.5,
+    ax = Axis3(fig, aspect = :data, perspectiveness = 1,
+               xzpanelcolor= (:black, 0.75), yzpanelcolor= (:black,0.75),
+               zgridcolor = :grey, ygridcolor = :grey, xgridcolor = :grey)
+    scatter!(ax, xsp, ysp, zs; markersize=log.(zs))
+    # ax = Axis(fig, aspect = 1)
+    # scatter!(ax, xsp, ysp; markersize=log.(zs, 10))
+    fig[1,1] = ax
+    fig
+end
 
 function main(filename::String)
   dirs = parse_directions(filename)
@@ -80,7 +95,8 @@ function main(filename::String)
   xsp, ysp, aim = part2(dirs)
   println("Part2: ", xsp[end] * ysp[end])
   # plot(xs, ys)
-  
-  writedlm("coords.txt", [xs ys], " ")
-  writedlm("coords2.txt", [xsp ysp aim], " ")
+
+  # writedlm("coords.txt", [xs ys], " ")
+  # writedlm("coords2.txt", [xsp ysp aim], " ")
+  visual(xsp, ysp, aim)
 end

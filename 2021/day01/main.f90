@@ -1,5 +1,7 @@
 module day01
-  use aoc, only: String
+  use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
+       f32 => real32, f64 => real64, f128 => real128
+  use aoc, only: String, readfile, strfree, countlines
   implicit none
 contains
   integer function part1(numbers, len)
@@ -69,9 +71,6 @@ contains
 end module day01
 
 program main
-  use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
-       f32 => real32, f64 => real64, f128 => real128
-  use aoc, only: String, readfile, strfree, countlines
   use day01
   implicit none
 

@@ -66,7 +66,6 @@ function part2(drawer::Vector{Int}, boards::Vector{Matrix{Int}})
         end
     end
 
-    states[won_already[end]]
     s = 0
     for jj in findall(==(0), states[won_already[end]])
         s += boards[won_already[end]][jj]

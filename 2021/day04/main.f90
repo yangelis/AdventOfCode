@@ -1,10 +1,9 @@
 module day04
   use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
        f32 => real32, f64 => real64, f128 => real128
-  use aoc, only: Pair, String, StringView, Veci32, VecSV, readlines,&
-       & sv_from_characters, split, new_veci32
+  use aoc, only: String, StringView, Veci32, VecSV, readlines,&
+       & sv_from_characters, split, new_veci32, findall2d
   implicit none
-
 
 contains
 
@@ -59,7 +58,7 @@ contains
     integer(i32) :: i, n
     type(Veci32) :: drawer
 
-    s = split(lines(1), ',', 30)
+    s = split(lines(1), ',', 100)
 
     n = s%n
     drawer = new_veci32(n)
@@ -77,7 +76,7 @@ contains
     integer(i32) :: i, j, k, n, m, a
     type(VecSV) :: s
 
-    n = (nlines - 1)/5
+    n = (nlines - 1) / 6
     allocate(boards(n, 5, 5))
     boards = 0
     i = 1
@@ -129,39 +128,14 @@ contains
   end function split_by
 
 
-  function findall(v1, m2) result(indices)
-    integer(i32), intent(in) :: v1
-    integer(i32), intent(in) :: m2(:, :)
-    type(Pair), allocatable :: indices(:)
-    integer(i32) :: sh(2)
-    integer(i32) :: i, j, n, m
-    n = size(m2)
-    allocate(indices(n))
-    indices(:)%first = -1
-    indices(:)%second = -1
-    sh = shape(m2)
-    n = sh(1)
-    m = sh(2)
-
-    do j = 1, n
-       do i = 1, m
-          if (v1 == m2(i, j)) then
-             indices(i + (j-1)*n)%first = 1
-             indices(i + (j-1)*n)%second = 1
-          end if
-       end do
-    end do
-  end function findall
-
   function part1(drawer, boards) result(p)
     type(Veci32), intent(in) :: drawer
     integer(i32), intent(in) :: boards(:, :, :)
     integer(i32) :: board_shape(3)
     integer(i32) :: bn, bm, bk, p, s
-    integer(i32) :: i, j, jj, ii, ij2(1)
+    integer(i32) :: i, j, jj, ii
     integer(i32), allocatable :: selected(:, :, :)
     integer(i32) :: ij(2)
-    type(Pair), allocatable :: indices(:)
 
     board_shape = shape(boards)
     bn = board_shape(1)
@@ -194,6 +168,69 @@ contains
 
   end function part1
 
+  function part2(drawer, boards) result(p)
+    type(Veci32), intent(in) :: drawer
+    integer(i32), intent(in) :: boards(:, :, :)
+    integer(i32) :: board_shape(3)
+    integer(i32) :: bn, bm, bk, p
+    integer(i32) :: i, j, k
+    integer(i32) :: last_i, last_j
+    integer(i32), allocatable :: selected(:, :, :)
+    integer(i32), allocatable :: states(:, :, :)
+    integer(i32) :: ij(2), has_won(2)
+    integer(i32), allocatable :: indices(:, :)
+    integer(i32), allocatable :: won_already(:, :), won(:, :)
+
+    board_shape = shape(boards)
+    bn = board_shape(1)
+    bm = board_shape(2)
+    bk = board_shape(3)
+
+    allocate(selected(bn, bm, bk))
+    selected = 0
+    allocate(states(bn, bm, bk))
+    states = 0
+
+    allocate(won_already(drawer%n, bn))
+    won_already = 0
+    allocate(won(drawer%n, bn))
+    won = 0
+
+    ij = 0
+
+    last_i = 0
+    last_j = 0
+    DRAWER_LOOP: do i = 1, drawer%n
+       BOARD_LOOP: do j = 1, bn
+          ij = findloc(boards(j, :, :), drawer%data(i))
+          if (ij(1) > 0 .and. ij(2) > 0) then
+             selected(j, ij(1), ij(2)) = 1
+             has_won = findloc(won_already, j)
+             if ((sum(selected(j, ij(1), :)) == 5 .or. sum(selected(j, :, ij(2))) == 5&
+                  &) .and. (has_won(1) < 1 .and. has_won(2) < 1 )) then
+                won(i, j) = drawer%data(i)
+                won_already(i, j) = j
+                states(j, :, :) = selected(j, :, :)
+                last_i = i
+                last_j = j
+             end if
+          end if
+       end do BOARD_LOOP
+    end do DRAWER_LOOP
+
+    p = 0
+    indices = findall2d(0, bm, bk, states(won_already(last_i, last_j), :, :))
+    do k = 1, bk
+       do j = 1, bm
+          if ( indices(j, k) == 1 ) then
+             p = p + boards(won_already(last_i, last_j), j, k)
+          end if
+       end do
+    end do
+    p = p * won(last_i, last_j)
+
+  end function part2
+
 end module day04
 
 program main
@@ -201,7 +238,7 @@ program main
   implicit none
 
   BLOCK
-    integer(i32) :: nlines, p1, p2, i
+    integer(i32) :: nlines, p1, p2
     type(String), allocatable :: lines(:)
     character (len=30) :: filename
     type(Veci32) :: drawer
@@ -220,9 +257,7 @@ program main
     p1 = part1(drawer, boards)
     write(*, *) "Part1: ", p1
 
-
-
-    ! deallocate(lines)
-    ! deallocate(drawer)
+    p2 = part2(drawer, boards)
+    write(*, *) "Part2: ", p2
   end BLOCK
 end program main
