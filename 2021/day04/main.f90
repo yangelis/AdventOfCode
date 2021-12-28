@@ -2,7 +2,7 @@ module day04
   use iso_fortran_env, only:i8 => int8, i16 => int16, i32 => int32, i64 => int64, &
        f32 => real32, f64 => real64, f128 => real128
   use aoc, only: String, StringView, Veci32, VecSV, readlines,&
-       & sv_from_characters, split, new_veci32, findall2d
+       & sv_from_characters, split, new_veci32, findall
   implicit none
 
 contains
@@ -69,16 +69,13 @@ contains
 
   end function parsedrawer
 
-  function parseboards(nlines, lines) result(boards)
-    integer(i32), intent(in) :: nlines
+  subroutine parseboards(nlines, lines, n, boards)
+    integer(i32), intent(in) :: nlines, n
     type(String), intent(in) :: lines(nlines)
-    integer(i32), allocatable :: boards(:, :, :)
-    integer(i32) :: i, j, k, n, m, a
+    integer(i32), intent(inout) :: boards(n, 5, 5)
+    integer(i32) :: i, j, k, m, a
     type(VecSV) :: s
 
-    n = (nlines - 1) / 6
-    allocate(boards(n, 5, 5))
-    boards = 0
     i = 1
     BLOCKS:do m = 3, nlines, 6
        ROWS:do j = 0, 4
@@ -91,7 +88,7 @@ contains
        end do ROWS
        i = i + 1
     end do BLOCKS
-  end function parseboards
+  end subroutine parseboards
 
   function split_by(str, ch) result(parts)
     type(String), intent(in) :: str
@@ -188,7 +185,7 @@ contains
 
     allocate(selected(bn, bm, bk))
     selected = 0
-    allocate(states(bn, bm, bk))
+    allocate(states(bk, bm, bn))
     states = 0
 
     allocate(won_already(drawer%n, bn))
@@ -210,7 +207,7 @@ contains
                   &) .and. (has_won(1) < 1 .and. has_won(2) < 1 )) then
                 won(i, j) = drawer%data(i)
                 won_already(i, j) = j
-                states(j, :, :) = selected(j, :, :)
+                states(:, :, j) = selected(j, :, :)
                 last_i = i
                 last_j = j
              end if
@@ -219,7 +216,8 @@ contains
     end do DRAWER_LOOP
 
     p = 0
-    indices = findall2d(0, bm, bk, states(won_already(last_i, last_j), :, :))
+    allocate(indices(bm, bk))
+    indices(:, :) = findall(0, bm, bk, states(:, :, won_already(last_i, last_j)))
     do k = 1, bk
        do j = 1, bm
           if ( indices(j, k) == 1 ) then
@@ -238,7 +236,7 @@ program main
   implicit none
 
   BLOCK
-    integer(i32) :: nlines, p1, p2
+    integer(i32) :: nlines, n, p1, p2
     type(String), allocatable :: lines(:)
     character (len=30) :: filename
     type(Veci32) :: drawer
@@ -252,7 +250,9 @@ program main
     nlines = size(lines)
 
     drawer = parsedrawer(nlines, lines)
-    boards = parseboards(nlines, lines)
+    n = (nlines - 1) / 6
+    allocate(boards(n, 5, 5))
+    call parseboards(nlines, lines, n, boards)
 
     p1 = part1(drawer, boards)
     write(*, *) "Part1: ", p1

@@ -184,7 +184,8 @@ program main
 
     lines = readlines(filename)
     nlines = size(lines)
-    segments = parseposition(nlines, lines)
+    allocate(segments(nlines))
+    segments(:) = parseposition(nlines, lines)
     grid_size = find_grid_size(nlines, segments)
 
     p1 = part1(grid_size, nlines, segments)
