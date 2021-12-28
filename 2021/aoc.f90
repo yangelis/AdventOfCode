@@ -32,6 +32,10 @@ module aoc
      type(StringView), allocatable :: data(:)
   end type VecSV
 
+  interface findall
+     procedure findall1d, findall2d, findall3d
+  end interface findall
+
 contains
   type(String) function new_str(s)
     character(len=:), allocatable :: s
