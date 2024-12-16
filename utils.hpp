@@ -8,6 +8,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <cstdint>
+
+using c8 = char;
 
 // Unsigned
 using u8 = uint8_t;
@@ -25,13 +28,16 @@ using i64 = int64_t;
 using f32 = float;
 using f64 = double;
 
+template <typename T>
+using Vec = std::vector<T>;
+
 namespace utils {
 
 struct V2 {
-  int x{0};
-  int y{0};
+  i32 x{0};
+  i32 y{0};
   V2() {}
-  V2(int x, int y) : x(x), y(y) {}
+  V2(i32 x, i32 y) : x(x), y(y) {}
 };
 
 inline V2 operator+(const V2 &a, const V2 &b) { return {a.x + b.x, a.y + b.y}; }
@@ -51,6 +57,23 @@ double manhattan_dist(const V2 &a, const V2 &b) {
   return std::abs(b.x - a.x) + std::abs(b.y - a.y);
 }
 
+template <typename T>
+struct tV2 {
+  T x{0};
+  T y{0};
+  tV2() {}
+  tV2(T x, T y) : x(x), y(y) {}
+};
+
+template <typename T>
+struct V3 {
+  T x{0};
+  T y{0};
+  T z{0};
+  V3() {}
+  V3(T x, T y, T z) : x(x), y(y), z(z) {}
+};
+
 // mod that works
 template <typename T> T mod(T a, T b) { return (a % b + b) % b; }
 //////////////////////////////////////////////////
@@ -65,13 +88,13 @@ template <typename T> struct Maybe {
 // Matrix
 //////////////////////////////////////////////////
 template <typename T> struct Matrix {
-  size_t rows, cols;
+  std::size_t rows, cols;
   T *data{nullptr};
 
-  Matrix(size_t r, size_t c) : rows(r), cols(c) { data = new T[rows * cols](); }
+  Matrix(std::size_t r, std::size_t c) : rows(r), cols(c) { data = new T[rows * cols](); }
   Matrix(const Matrix<T> &m) : rows(m.rows), cols(m.cols), data(m.data) {}
   Matrix(Matrix<T> &&m) : rows(m.rows), cols(m.cols), data(std::move(m.data)) {}
-  template <size_t r, size_t c> Matrix(T (&m)[r][c]) : Matrix(r, c) {
+  template <std::size_t r, std::size_t c> Matrix(T (&m)[r][c]) : Matrix(r, c) {
     for (size_t i = 0; i < rows; ++i) {
       for (size_t j = 0; j < cols; ++j) {
         (*this)(i, j) = m[i][j];
@@ -117,7 +140,7 @@ template <typename T> struct Matrix {
   }
 
   static inline Matrix<u8>
-  create_mat_from_lines(const std::vector<std::string_view> &lines) {
+  create_mat_from_lines(const Vec<std::string_view> &lines) {
     size_t h = lines.size();
     size_t w = lines[0].size();
     Matrix<u8> grid{h, w};
@@ -160,7 +183,7 @@ template <typename T> Matrix<T> hcat(const Matrix<T> &a, const Matrix<T> &b) {
   return ret;
 }
 
-template <typename T> Matrix<T> hcat(const std::vector<Matrix<T>> &vec) {
+template <typename T> Matrix<T> hcat(const Vec<Matrix<T>> &vec) {
   size_t rows = vec[0].rows;
   size_t cols = 0;
   for (const auto &m : vec) {
@@ -323,7 +346,7 @@ static inline std::string_view &triml(std::string_view &s) {
 }
 
 static inline std::string_view
-join_string_view(const std::vector<std::string_view> &vec) {
+join_string_view(const Vec<std::string_view> &vec) {
   char *buffer = new char[1024];
   size_t i = 0;
   for (const auto &v : vec) {
@@ -336,9 +359,9 @@ join_string_view(const std::vector<std::string_view> &vec) {
   return {buffer, i};
 }
 
-static inline std::vector<std::string_view> split_lines(std::string_view view,
+static inline Vec<std::string_view> split_lines(std::string_view view,
                                                         char delim = '\n') {
-  std::vector<std::string_view> ret;
+  Vec<std::string_view> ret;
 
   while (!view.empty()) {
     size_t len = view.find(delim);
@@ -355,10 +378,10 @@ static inline std::vector<std::string_view> split_lines(std::string_view view,
   return ret;
 }
 
-static inline std::vector<std::string_view> split_by(std::string_view view,
+static inline Vec<std::string_view> split_by(std::string_view view,
                                                      std::string_view delim) {
   view = trimr(view);
-  std::vector<std::string_view> ret;
+  Vec<std::string_view> ret;
   while (view.size() > 0) {
     auto len = view.find(delim);
     if (len == std::string_view::npos) {
@@ -371,22 +394,22 @@ static inline std::vector<std::string_view> split_by(std::string_view view,
   return ret;
 }
 
-static inline std::vector<std::string_view> split_by(std::string_view view,
+static inline Vec<std::string_view> split_by(std::string_view view,
                                                      char delim) {
   return split_by(view, std::string_view(&delim, 1));
 }
 
-static inline std::vector<std::string_view>
+static inline Vec<std::string_view>
 read_lines_as_string_view(const char *filename) {
   auto lines = read_file_as_string_view(filename);
   return split_lines(lines, '\n');
 }
 
 template <typename T, typename Op>
-std::vector<T> filter(Op &&fn, const std::vector<T> &v) {
+Vec<T> filter(Op &&fn, const Vec<T> &v) {
 
   const auto n = v.size();
-  std::vector<T> ret;
+  Vec<T> ret;
   ret.reserve(n);
   for (auto &&val : v) {
     if (fn(val)) {
@@ -397,7 +420,7 @@ std::vector<T> filter(Op &&fn, const std::vector<T> &v) {
 }
 
 template <typename... Types>
-std::size_t GetVectorsSize(const std::vector<Types> &...vs) {
+std::size_t GetVectorsSize(const Vec<Types> &...vs) {
   constexpr const auto nArgs = sizeof...(Types);
   const std::size_t sizes[] = {vs.size()...};
   if (nArgs > 1) {
@@ -413,10 +436,10 @@ std::size_t GetVectorsSize(const std::vector<Types> &...vs) {
 }
 
 template <typename F, typename... Types>
-auto map(F &&fn, const std::vector<Types> &...input)
-    -> std::vector<decltype(fn(input[0]...))> {
+auto map(F &&fn, const Vec<Types> &...input)
+    -> Vec<decltype(fn(input[0]...))> {
   const auto size = GetVectorsSize(input...);
-  std::vector<decltype(fn(input[0]...))> ret(size);
+  Vec<decltype(fn(input[0]...))> ret(size);
   for (size_t i = 0; i < size; ++i) {
     ret[i] = fn(input[i]...);
   }
@@ -424,9 +447,9 @@ auto map(F &&fn, const std::vector<Types> &...input)
 }
 
 template <typename T, typename Op>
-auto map(Op &&fn, const std::vector<T> &input)
-    -> std::vector<decltype(fn(input[0]))> {
-  std::vector<decltype(fn(input[0]))> ret;
+auto map(Op &&fn, const Vec<T> &input)
+    -> Vec<decltype(fn(input[0]))> {
+  Vec<decltype(fn(input[0]))> ret;
   ret.reserve(input.size());
   for (const auto &x : input) {
     ret.push_back(fn(x));
@@ -435,7 +458,7 @@ auto map(Op &&fn, const std::vector<T> &input)
 }
 
 template <typename T, typename R, typename FoldOp>
-R foldl(const R &i, const std::vector<T> &xs, FoldOp fn) {
+R foldl(const R &i, const Vec<T> &xs, FoldOp fn) {
   auto ret = i;
   for (const auto &x : xs) {
     ret = fn(ret, x);
@@ -443,13 +466,13 @@ R foldl(const R &i, const std::vector<T> &xs, FoldOp fn) {
   return ret;
 }
 
-template <typename T> static inline T sum(const std::vector<T> &xs) {
+template <typename T> static inline T sum(const Vec<T> &xs) {
   return foldl(T(), xs, [](const T &a, const T &b) -> T { return a + b; });
 }
 
 template <typename T>
-static inline std::vector<T> arange(T start, T stop, T step = 1) {
-  std::vector<T> values;
+static inline Vec<T> arange(T start, T stop, T step = 1) {
+  Vec<T> values;
 
   if (step > 0) {
     for (T value = start; value < stop; value += step) {
@@ -465,7 +488,7 @@ static inline std::vector<T> arange(T start, T stop, T step = 1) {
 
 // return the index
 template <typename F, typename T>
-Maybe<i64> findfirst(F &&fn, const std::vector<T> &h) {
+Maybe<i64> findfirst(F &&fn, const Vec<T> &h) {
   auto res = std::find_if(h.begin(), h.end(), fn);
   if (res != h.end()) {
     return {1, std::distance(h.begin(), res)};
@@ -476,9 +499,9 @@ Maybe<i64> findfirst(F &&fn, const std::vector<T> &h) {
 
 // return the indices
 template <typename F, typename T>
-std::vector<i64> findall(F &&fn, const std::vector<T> &h) {
+Vec<i64> findall(F &&fn, const Vec<T> &h) {
   const auto n = h.size();
-  std::vector<i64> ret;
+  Vec<i64> ret;
   ret.reserve(n);
   for (size_t i = 0; i < n; ++i) {
     if (fn(h[i])) {
@@ -487,18 +510,22 @@ std::vector<i64> findall(F &&fn, const std::vector<T> &h) {
   }
   return ret;
 }
-template <typename T> T prod(const std::vector<T> &x) {
+template <typename T> T prod(const Vec<T> &x) {
   auto ret = foldl(T(1), x, [](const T &a, const T &b) -> T { return a * b; });
   return ret;
 }
-static inline i64 to_int(std::string_view s) {
+static inline i64 to_i64(std::string_view s) {
   return std::stoll(std::string(s));
 }
 
+static inline i32 to_i32(std::string_view s) {
+  return std::stoi(std::string(s));
+}
+
 template <typename T, typename U>
-std::vector<std::pair<T, U>> zip(const std::vector<T> &a,
-                                 const std::vector<U> &b) {
-  std::vector<std::pair<T, U>> ret;
+Vec<std::pair<T, U>> zip(const Vec<T> &a,
+                                 const Vec<U> &b) {
+  Vec<std::pair<T, U>> ret;
 
   for (size_t i = 0; i < std::min(a.size(), b.size()); ++i) {
     ret.emplace_back(a[i], b[i]);
@@ -536,16 +563,33 @@ static inline bool match(const T &first, const U &second, const Args &...rest) {
 }
 
 template <typename T, typename R>
-static inline std::vector<std::pair<T, R>> cartesian(const std::vector<T> &xs,
-                                                     const std::vector<R> &ys) {
+static inline Vec<std::pair<T, R>> cartesian(const Vec<T> &xs,
+                                                     const Vec<R> &ys) {
 
-  std::vector<std::pair<T, R>> ret;
+  Vec<std::pair<T, R>> ret;
   for (const auto &x : xs) {
     for (const auto &y : ys) {
       ret.emplace_back(x, y);
     }
   }
   return ret;
+}
+
+
+template <typename T, typename U>
+Vec<std::pair<T, U>> zip(const Vec<T> &a,
+                         const Vec<U> &b, i64 shift_1 = 0, i64 shift_2 = 0)
+{
+    Vec<std::pair<T, U>> ret;
+
+    // TODO: check if shifts trigger out of bounds
+    const auto n = std::min(a.size(), b.size()) - std::max(shift_1, shift_2);
+    ret.reserve(n);
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        ret.emplace_back(a[i + shift_1], b[i + shift_2]);
+    }
+    return ret;
 }
 
 } // namespace utils
