@@ -1,2 +1,5 @@
-/.vscode/
+.vscode
+.vscode/
+
+# Ignore test or input files
 *.txt

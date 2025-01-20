@@ -36,8 +36,8 @@ namespace utils {
 struct V2 {
   i32 x{0};
   i32 y{0};
-  V2() {}
-  V2(i32 x, i32 y) : x(x), y(y) {}
+  V2() = default;
+  V2(i32 x, i32 y) : x{x}, y{y} {}
 };
 
 inline V2 operator+(const V2 &a, const V2 &b) { return {a.x + b.x, a.y + b.y}; }
@@ -61,8 +61,8 @@ template <typename T>
 struct tV2 {
   T x{0};
   T y{0};
-  tV2() {}
-  tV2(T x, T y) : x(x), y(y) {}
+  tV2() = default;
+  tV2(T x, T y) : x{x}, y{y} {}
 };
 
 template <typename T>
@@ -70,8 +70,8 @@ struct V3 {
   T x{0};
   T y{0};
   T z{0};
-  V3() {}
-  V3(T x, T y, T z) : x(x), y(y), z(z) {}
+  V3() = default;
+  V3(T x, T y, T z) : x{x}, y{y}, z{z} {}
 };
 
 // mod that works
@@ -413,6 +413,23 @@ Vec<T> filter(Op &&fn, const Vec<T> &v) {
   ret.reserve(n);
   for (auto &&val : v) {
     if (fn(val)) {
+      ret.emplace_back(val);
+    }
+  }
+  return ret;
+}
+
+template <typename Op>
+auto filter(Op &&fn, std::string_view v) -> Vec<c8>
+{
+
+  const auto n = v.size();
+  Vec<c8> ret;
+  ret.reserve(n);
+  for (auto val : v)
+  {
+    if (fn(val))
+    {
       ret.emplace_back(val);
     }
   }
